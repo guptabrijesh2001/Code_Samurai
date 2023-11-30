@@ -1,4 +1,4 @@
-export type Example = {
+ export type Example = {
 	id: number;
 	inputText: string;
 	outputText: string;
@@ -15,7 +15,11 @@ export type Problem = {
 	constraints: string;
 	order: number;
 	starterCode: string;
-	handlerFunction: ((fn: any) => boolean) | string;
+	// handlerFunction: ((fn: any,abc:any) => boolean) | string;
+	// type Problem = {
+  handlerFunction: (fn: any, abc: any) => boolean | Promise<boolean>;
+
+
 	starterFunctionName: string;
 };
 

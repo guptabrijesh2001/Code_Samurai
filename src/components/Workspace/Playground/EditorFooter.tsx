@@ -1,11 +1,19 @@
+import { useRouter } from "next/router";
 import React from "react";
 import { BsChevronUp } from "react-icons/bs";
-
+import { problems } from "@/utils/problems";
+import { codeuser } from "@/atoms/authModalAtom"; 
+import { useRecoilValue } from 'recoil';
 type EditorFooterProps = {
 	handleSubmit: () => void;
 };
 
+
 const EditorFooter: React.FC<EditorFooterProps> = ({ handleSubmit }) => {
+	const c = useRecoilValue(codeuser);
+	const {
+		query: { pid },
+	} = useRouter();
 	return (
 		<div className='flex bg-dark-layer-1 absolute bottom-0 z-10 w-full'>
 			<div className='mx-5 my-[10px] flex justify-between w-full'>
@@ -29,6 +37,16 @@ const EditorFooter: React.FC<EditorFooterProps> = ({ handleSubmit }) => {
 						onClick={handleSubmit}
 					>
 						Submit
+					</button>
+					<button
+						className='px-3 py-1.5 font-medium items-center transition-all focus:outline-none inline-flex text-sm text-white bg-dark-green-s hover:bg-green-3 rounded-lg'
+						onClick={()=>{
+							
+							const query=`${problems[pid as string].id} ${problems[pid as string].title} ${problems[pid as string].problemStatement} ${problems[pid as string].examples} here is my code ${c}`
+							console.log(query)
+						}}
+					>
+						Help
 					</button>
 				</div>
 			</div>

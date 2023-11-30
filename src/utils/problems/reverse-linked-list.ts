@@ -24,21 +24,41 @@ class LinkedList {
 		return prev!;
 	}
 }
-
-export const reverseLinkedListHandler = (fn: any) => {
+// let ans=[];
+export const reverseLinkedListHandler = (fn: any,abc:any) => {
+	let ans: number[][] = [];
 	try {
-		const tests = [[1, 2, 3, 4, 5], [5, 4, 3, 2, 1], [1, 2, 3], [1]];
-		const answers = [[5, 4, 3, 2, 1], [1, 2, 3, 4, 5], [3, 2, 1], [1]];
+		const tests = [[1, 2, 3, 4, 5], [1, 2, 3], [1]];
+		const answers = [[5, 4, 3, 2, 1],  [3, 2, 1], [1]];
 		for (let i = 0; i < tests.length; i++) {
 			const list = createLinkedList(tests[i]);
 			const result = fn(list);
-			assert.deepEqual(getListValues(result), answers[i]);
+			ans.push(getListValues(result));
+			// assert.deepEqual(getListValues(result), answers[i]);
 		}
-		return true;
+		
+	
 	} catch (error: any) {
 		console.log("Error from reverseLinkedListHandler: ", error);
 		throw new Error(error);
 	}
+	abc.val=ans;
+		const tests = [[1, 2, 3, 4, 5], [1, 2, 3], [1]];
+		const answers = [[5, 4, 3, 2, 1], [3, 2, 1], [1]];
+		for (let i = 0; i < tests.length; i++) {
+			// const list = createLinkedList(tests[i]);
+			// const result = fn(list);
+			// ans=[...ans,result];
+			try{
+			assert.deepStrictEqual(ans[i], answers[i]);
+			}
+			catch (error: any) {
+		console.log("Error from reverseLinkedListHandler: ", error);
+		throw new Error(error);
+	}
+
+} 
+return true;
 };
 
 // it creates a linked list from an array

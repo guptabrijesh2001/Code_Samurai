@@ -14,3 +14,8 @@ export const authModalState = atom<AuthModalState>({
 	key: "authModalState",
 	default: initalAuthModalState,
 });
+
+export const codeuser = atom({
+  key: 'codeuser',
+  default: '',
+});

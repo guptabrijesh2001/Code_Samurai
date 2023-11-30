@@ -1,14 +1,77 @@
 import assert from "assert";
 import { Problem } from "../types/problem";
+// import { Worker } from 'worker_threads'; 
+function executeUserCode(userCode: string, timeout: number): Promise<any> {
+  return new Promise((resolve, reject) => {
+    // Create a blob containing the user code
+    const blob = new Blob([userCode], { type: 'application/javascript' });
+
+    // Create a worker from the blob
+    const worker = new Worker(URL.createObjectURL(blob));
+worker.postMessage({ userCode });
+    // Set up a timeout for the worker
+    const timeoutId = setTimeout(() => {
+      worker.terminate();
+      reject(new Error('Execution timed out'));
+    }, timeout);
+
+    // Listen for messages from the worker
+    worker.onmessage = function (event) {
+      clearTimeout(timeoutId); // Clear the timeout since the worker has completed
+
+      const { result, error } = event.data;
+
+      // Terminate the worker
+      worker.terminate();
+
+      if (error) {
+		console.log("i am handling")
+        reject(new Error(error));
+      } else {
+        resolve(result);
+      }
+    };
+
+    // Handle errors during worker initialization
+    worker.onerror = function (error) {
+      clearTimeout(timeoutId);
+      reject(new Error(`Worker initialization error: ${error.message}`));
+    };
+  });
+}
+
+    // Set a timeout to terminate the worker after a specified time
+//     setTimeout(() => {
+//       worker.terminate();
+//       reject(new Error('Execution timed out.'));
+//     }, timeout);
+//   });
+// }
+
+
 
 const starterCodeTwoSum = `function twoSum(nums,target){
   // Write your code here
 };`;
+// const executeWithTimeout = (fn:any, timeout:any,x:any,y:any) => {
+//   return new Promise((resolve, reject) => {
+//     const timeoutId = setTimeout(() => {
+//       reject(new Error("Time limit exceeded"));
+//     }, timeout);
 
+//     const result = fn();
+
+//     clearTimeout(timeoutId);
+
+//     resolve(result(x,y));
+//   });
+// };
 // checks if the user has the correct code
-const handlerTwoSum = (fn: any) => {
+
+const handlerTwoSum =async (fn: any,abc:any) => {
 	// fn is the callback that user's code is passed into
-	try {
+
+	
 		const nums = [
 			[2, 7, 11, 15],
 			[3, 2, 4],
@@ -21,18 +84,64 @@ const handlerTwoSum = (fn: any) => {
 			[1, 2],
 			[0, 1],
 		];
-
+        //  var ans=[[]];
+		 var ans: number[][] = [];
+		 
 		// loop all tests to check if the user's code is correct
-		for (let i = 0; i < nums.length; i++) {
-			// result is the output of the user's function and answer is the expected output
-			const result = fn(nums[i], targets[i]);
-			assert.deepStrictEqual(result, answers[i]);
-		}
+		try{
+		 for (let i = 0; i < nums.length; i++) {
+    try {
+      const userCode: string = `self.onmessage = function(event) {
+    try { 
+		const nums = [${nums[i]}];
+      const target = ${targets[i]};
+	   const fn = ${fn.toString()};
+      ${fn.toString()}
+
+	 const result = fn(nums,target);    self.postMessage({ result });
+    } catch (error) {
+      self.postMessage({ error: error.message });
+    }
+  };`;
+      const timeout: number = 1000; // 1 second
+
+      const result = await executeUserCode(userCode, timeout);
+      ans.push(result);
+      console.log('Execution completed:', result);
+    } catch (error:any) {
+      console.log("Error occurred during execution:", error);
+	  throw new Error(error);
+      // Handle the error or log it as needed
+    }
+  }
+}
+catch(error:any)
+{
+	console.log("missssssssssssssssssssssssssssssing")
+	throw new Error(error);
+}
+		abc.val=ans;
+		console.log("abc"+JSON.stringify(abc));
+		// setTimeout(()=>{
+
+			for (let i = 0; i < nums.length; i++) {
+				// result is the output of the user's function and answer is the expected output
+				try{
+				console.log("cheeeeeeeeeeck")
+				assert.deepStrictEqual(ans[i], answers[i]);
+				}
+				catch (error: any) {
+					console.log("twoSum handler function error");
+					throw new Error(error)
+					// console.log(`${error} in test case ${i}`)
+					// throw new Error(`${error} in test case ${i}`);
+				}
+	
+			}
+		// },1000)
+          console.log("above true")
+		
 		return true;
-	} catch (error: any) {
-		console.log("twoSum handler function error");
-		throw new Error(error);
-	}
 };
 
 export const twoSum: Problem = {
@@ -81,3 +190,4 @@ export const twoSum: Problem = {
 	order: 1,
 	starterFunctionName: "function twoSum(",
 };
+

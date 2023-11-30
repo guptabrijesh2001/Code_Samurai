@@ -13,7 +13,8 @@ import { problems } from "@/utils/problems";
 import { useRouter } from "next/router";
 import { arrayUnion, doc, updateDoc } from "firebase/firestore";
 import useLocalStorage from "@/hooks/useLocalStorage";
-
+import { codeuser } from "@/atoms/authModalAtom"; 
+import { useRecoilState } from "recoil";
 type PlaygroundProps = {
 	problem: Problem;
 	setSuccess: React.Dispatch<React.SetStateAction<boolean>>;
@@ -25,8 +26,10 @@ export interface ISettings {
 	settingsModalIsOpen: boolean;
 	dropdownIsOpen: boolean;
 }
-
+var abc={val:""};
 const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved }) => {
+	const [code, setcode] = useRecoilState(codeuser);
+	const[err,seterr]=useState("");
 	const [activeTestCaseId, setActiveTestCaseId] = useState<number>(0);
 	let [userCode, setUserCode] = useState<string>(problem.starterCode);
 
@@ -37,7 +40,7 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
 		settingsModalIsOpen: false,
 		dropdownIsOpen: false,
 	});
-
+    const [act,setact]=useState(false)
 	const [user] = useAuthState(auth);
 	const {
 		query: { pid },
@@ -48,7 +51,7 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
 			toast.error("Please login to submit your code", {
 				position: "top-center",
 				autoClose: 3000,
-				theme: "dark",
+				theme: "dark", 
 			});
 			return;
 		}
@@ -56,10 +59,37 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
 			userCode = userCode.slice(userCode.indexOf(problem.starterFunctionName));
 			const cb = new Function(`return ${userCode}`)();
 			const handler = problems[pid as string].handlerFunction;
-
+      
 			if (typeof handler === "function") {
-				const success = handler(cb);
+				console.log("yes it is function")
+				var success;
+				setcode(`${JSON.stringify(cb)}`)
+				 success = await handler(cb,abc);
+			// 	catch(error:any){
+			// 		console.log(error.message+"here it is");
+			// console.log("abccc"+abc.val)
+			// if (
+			// 	error.message.startsWith("AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:")
+			// ) {
+			// 	toast.error("Oops! One or more test cases failed", {
+			// 		position: "top-center",
+			// 		autoClose: 3000,
+			// 		theme: "dark",
+			// 	});
+			// } else {
+			// 	seterr(error.message);
+			// 	console.log(error.message)
+			// 	console.log("abccc"+abc.val)
+			// 	toast.error(error.message, {
+			// 		position: "top-center",
+			// 		autoClose: 3000,
+			// 		theme: "dark",
+			// 	});
+			// }
+			// 	}
+				
 				if (success) {
+					console.log("success"+JSON.stringify(success))
 					toast.success("Congrats! All tests passed!", {
 						position: "top-center",
 						autoClose: 3000,
@@ -76,9 +106,12 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
 					});
 					setSolved(true);
 				}
+			
 			}
+			
 		} catch (error: any) {
-			console.log(error.message);
+			console.log(error.message+"here it is");
+			console.log("abccc"+abc.val)
 			if (
 				error.message.startsWith("AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:")
 			) {
@@ -88,6 +121,9 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
 					theme: "dark",
 				});
 			} else {
+				seterr(error.message);
+				console.log(error.message)
+				console.log("abccc"+abc.val)
 				toast.error(error.message, {
 					position: "top-center",
 					autoClose: 3000,
@@ -129,12 +165,17 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
 					{/* testcase heading */}
 					<div className='flex h-10 items-center space-x-6'>
 						<div className='relative flex h-full flex-col justify-center cursor-pointer'>
-							<div className='text-sm font-medium leading-5 text-white'>Testcases</div>
-							<hr className='absolute bottom-0 h-0.5 w-full rounded-full border-none bg-white' />
+							<div className="flex ">
+							<div  onClick={() =>setact(false)}  className=' relative text-sm font-medium leading-5 text-white mr-2'>Testcases
+							{!act &&<hr className='absolute bottom-0 h-0.5 w-full rounded-full border-none bg-white' />}</div>
+							<div onClick={() =>setact(true)} className=' relative text-sm font-medium leading-5 text-white'>Result
+						{act &&	<hr className='absolute bottom-0 h-0.5 w-full rounded-full border-none bg-white' />}</div>
+							</div>
+							
 						</div>
 					</div>
-
-					<div className='flex'>
+{ !act &&
+				<>	<div className='flex'>
 						{problem.examples.map((example, index) => (
 							<div
 								className='mr-2 items-start mt-2 '
@@ -163,8 +204,54 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
 						<div className='w-full cursor-text rounded-lg border px-3 py-[10px] bg-dark-fill-3 border-transparent text-white mt-2'>
 							{problem.examples[activeTestCaseId].outputText}
 						</div>
+				</div></>}
+
+
+
+      {act &&  (err==="" ? <>	<div className='flex'>
+						{problem.examples.map((example, index) => (
+							<div
+								className='mr-2 items-start mt-2 '
+								key={example.id}
+								onClick={() => setActiveTestCaseId(index)}
+							>
+								<div className='flex flex-wrap items-center gap-y-4'>
+									<div
+										className={`font-medium items-center transition-all focus:outline-none inline-flex bg-dark-fill-3 hover:bg-dark-fill-2 relative rounded-lg px-4 py-1 cursor-pointer whitespace-nowrap
+										${activeTestCaseId === index ? "text-white" : "text-gray-500"}
+									`}
+									>
+										Case {index + 1}
+									</div>
+								</div>
+							</div>
+						))}
 					</div>
-				</div>
+
+					<div className='font-semibold my-4'>
+						<p className='text-sm font-medium mt-4 text-white'>Input:</p>
+						<div className='w-full cursor-text rounded-lg border px-3 py-[10px] bg-dark-fill-3 border-transparent text-white mt-2'>
+							{problem.examples[activeTestCaseId].inputText}
+						</div>
+						<p className='text-sm font-medium mt-4 text-white'>Output:</p>
+						<div className='w-full cursor-text rounded-lg border px-3 py-[10px] bg-dark-fill-3 border-transparent text-white mt-2'>
+							{JSON.stringify(abc.val[activeTestCaseId])
+							}
+							
+						</div>
+						<p className='text-sm font-medium mt-4 text-white'>Expected Output:</p>
+						<div className='w-full cursor-text rounded-lg border px-3 py-[10px] bg-dark-fill-3 border-transparent text-white mt-2'>
+							{problem.examples[activeTestCaseId].outputText}
+						</div>
+				</div></>
+				:
+				<div className="bg-red-500 text-white p-4 rounded-md shadow-md">
+    <p className="font-bold">Error:</p>
+    <p>{err}</p>
+  </div>)}
+
+
+					</div>
 			</Split>
 			<EditorFooter handleSubmit={handleSubmit} />
 		</div>
