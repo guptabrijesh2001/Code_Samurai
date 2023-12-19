@@ -14,7 +14,8 @@ import { useRouter } from "next/router";
 import { arrayUnion, doc, updateDoc } from "firebase/firestore";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { codeuser } from "@/atoms/authModalAtom"; 
-import { useRecoilState } from "recoil";
+import { useRecoilState,useRecoilValue } from "recoil";
+import { help } from "@/atoms/authModalAtom"; 
 type PlaygroundProps = {
 	problem: Problem;
 	setSuccess: React.Dispatch<React.SetStateAction<boolean>>;
@@ -41,7 +42,9 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
 		dropdownIsOpen: false,
 	});
     const [act,setact]=useState(false)
+	const [act1,setact1]=useState(false);
 	const [user] = useAuthState(auth);
+	const aiHelp=useRecoilValue(help);
 	const {
 		query: { pid },
 	} = useRouter();
@@ -63,8 +66,9 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
 			if (typeof handler === "function") {
 				console.log("yes it is function")
 				var success;
-				setcode(`${JSON.stringify(cb)}`)
-				 success = await handler(cb,abc);
+				console.log(code)
+			  setcode(`${cb}`)				
+			   success = await handler(cb,abc);
 			// 	catch(error:any){
 			// 		console.log(error.message+"here it is");
 			// console.log("abccc"+abc.val)
@@ -166,15 +170,17 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
 					<div className='flex h-10 items-center space-x-6'>
 						<div className='relative flex h-full flex-col justify-center cursor-pointer'>
 							<div className="flex ">
-							<div  onClick={() =>setact(false)}  className=' relative text-sm font-medium leading-5 text-white mr-2'>Testcases
-							{!act &&<hr className='absolute bottom-0 h-0.5 w-full rounded-full border-none bg-white' />}</div>
-							<div onClick={() =>setact(true)} className=' relative text-sm font-medium leading-5 text-white'>Result
-						{act &&	<hr className='absolute bottom-0 h-0.5 w-full rounded-full border-none bg-white' />}</div>
+							<div  onClick={() =>{setact(false); setact1(false)}}  className=' relative text-sm font-medium leading-5 text-white mr-2'>Testcases
+							{!act && !act1 &&<hr className='absolute bottom-0 h-0.5 w-full rounded-full border-none bg-white' />}</div>
+							<div onClick={() =>{setact(true); setact1(false)}} className=' relative text-sm font-medium leading-5 text-white mr-2'>Result
+						{act && !act1&&	<hr className='absolute bottom-0 h-0.5 w-full rounded-full border-none bg-white' />}</div>
+						<div  onClick={() =>{setact(false); setact1(true); }}  className=' relative text-sm font-medium leading-5 text-white mr-2'>Help
+							{act1 &&<hr className='absolute bottom-0 h-0.5 w-full rounded-full border-none bg-white' />}</div>
 							</div>
 							
 						</div>
 					</div>
-{ !act &&
+{ !act && !act1 &&
 				<>	<div className='flex'>
 						{problem.examples.map((example, index) => (
 							<div
@@ -208,7 +214,7 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
 
 
 
-      {act &&  (err==="" ? <>	<div className='flex'>
+      {act && ! act1 && (err==="" ? <>	<div className='flex'>
 						{problem.examples.map((example, index) => (
 							<div
 								className='mr-2 items-start mt-2 '
@@ -250,7 +256,10 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
     <p>{err}</p>
   </div>)}
 
-
+{act1 && aiHelp!="" &&<div className="bg-yellow-500 text-white p-4 rounded-md shadow-md">
+    <p className="font-bold">Hint:</p>
+    <p>{aiHelp}</p>
+  </div>}
 					</div>
 			</Split>
 			<EditorFooter handleSubmit={handleSubmit} />

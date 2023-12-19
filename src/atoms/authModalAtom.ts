@@ -17,5 +17,9 @@ export const authModalState = atom<AuthModalState>({
 
 export const codeuser = atom({
   key: 'codeuser',
-  default: '',
+  default: 'gbebgbfgbg',
 });
+export const help = atom({
+	key: 'help',
+	default: 'gbebgbfgbg',
+  });
